@@ -4,6 +4,96 @@
 import { notImplemented } from "ext:deno_node/_utils.ts";
 import { EventEmitter } from "node:events";
 
+class LinkedListNode {
+  next: LinkedListNode | null;
+  prev: LinkedListNode | null;
+
+  constructor() {
+    this.next = null;
+    this.prev = null;
+  }
+}
+
+class LinkedList {
+  private head: LinkedListNode;
+
+  constructor() {
+    this.head = new LinkedListNode();
+    this.head.next = this.head;
+    this.head.prev = this.head;
+  }
+
+  peek() {
+    if (this.head.prev === this.head) {
+      return null;
+    }
+    return this.head.prev;
+  }
+
+  remove(item: LinkedListNode) {
+    if (item.prev) {
+      item.prev.next = item.next;
+    }
+    if (item.next) {
+      item.next.prev = item.prev;
+    }
+    item.next = null;
+    item.prev = null;
+  }
+
+  append(item: LinkedListNode) {
+    /*
+      null <---prev.head.next ---> (prev)bar1(next)
+
+      with item, first remove from current pos
+
+      head.next ---> prev.item.next ----> (prev)bar1(next)
+    */
+    if (item.next || item.prev) {
+      this.remove(item);
+    }
+
+    item.next = this.head.next;
+    item.prev = this.head;
+    if (this.head.next) {
+      this.head.next.prev = item;
+      this.head.next = item;
+    }
+  }
+
+  isEmpty() {
+    return this.head.next === this.head;
+  }
+}
+
+class RoundRobinHandle {
+  key: string;
+  // all: Map;
+  // free: Map;
+  handles: LinkedList;
+
+  constructor(key: string, address: string, {
+    port,
+    fd,
+    flags,
+    backlog,
+    readableAll,
+    writableAll,
+  }: {
+    port: number;
+    fd: number;
+    flags: boolean;
+    backlog: any;
+    readableAll: any;
+    writableAll: any;
+  }) {
+    this.key = key;
+    // this.all = new Map();
+    // this.free = new Map();
+    this.handles = new LinkedList();
+  }
+}
+
 /** A Worker object contains all public information and method about a worker.
  * In the primary it can be obtained using cluster.workers. In a worker it can
  * be obtained using cluster.worker.
